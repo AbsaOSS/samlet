@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	Url                         = "https://sts.absa.co.za"
+	DefaultEndpoint             = "https://sts.absa.co.za"
 	DefaultAmazonWebservicesURN = "urn:amazon:webservices"
 	DefaultSessionDuration      = 3600
 	DefaultProfile              = "saml"
@@ -80,11 +80,14 @@ func (r *Saml2AwsReconciler) createAWSCreds(request reconcile.Request, saml *sam
 	loginSecret, _ := r.readSecret(saml.Spec.SecretName, saml.Namespace)
 	user, password := getLoginData(loginSecret)
 
-	account := formatAccount(Url, user, saml.Spec.RoleARN)
+	if saml.Spec.IDPEndpoint == "" {
+		saml.Spec.IDPEndpoint = DefaultEndpoint
+	}
+	account := formatAccount(saml.Spec.IDPEndpoint, user, saml.Spec.RoleARN)
 	provider, _ := adfs.New(account)
 	loginDetails := &creds.LoginDetails{
-		Username: user,
-		URL:      Url,
+		Username: account.Username,
+		URL:      account.URL,
 		Password: password,
 	}
 	samlAssertion, err := provider.Authenticate(loginDetails)

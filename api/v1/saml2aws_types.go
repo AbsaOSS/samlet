@@ -28,9 +28,10 @@ type Saml2AwsSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	SecretName       string `json:"secretName,omitempty"`
-	RoleARN          string `json:"roleARN,omitempty"`
+	SecretName       string `json:"secretName"`
+	RoleARN          string `json:"roleARN"`
 	TargetSecretName string `json:"targetSecretName"`
+	IDPEndpoint      string `json:"idpEndpoint,omitempty"`
 }
 
 // Saml2AwsStatus defines the observed state of Saml2Aws

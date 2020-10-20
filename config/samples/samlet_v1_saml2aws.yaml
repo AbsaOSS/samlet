@@ -1,0 +1,8 @@
+apiVersion: samlet.absa.oss/v1
+kind: Saml2Aws
+metadata:
+  name: saml2aws-sample
+spec:
+  # Add fields here
+  secretRefName: saml2aws-sample-secret
+  roleARN: arn:aws:iam::888888888888:role/adfs-saml2aws-sample-role

@@ -1,0 +1,20 @@
+# permissions for end users to view saml2aws.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: saml2aws-viewer-role
+rules:
+- apiGroups:
+  - samlet.absa.oss
+  resources:
+  - saml2aws
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - samlet.absa.oss
+  resources:
+  - saml2aws/status
+  verbs:
+  - get

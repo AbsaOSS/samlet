@@ -1,0 +1,11 @@
+domain: absa.oss
+layout: go.kubebuilder.io/v2
+projectName: samlet
+repo: github.com/bison-cloud-platform/samlet
+resources:
+- group: samlet
+  kind: Saml2Aws
+  version: v1
+version: 3-alpha
+plugins:
+  go.sdk.operatorframework.io/v2-alpha: {}

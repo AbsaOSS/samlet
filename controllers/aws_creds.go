@@ -14,9 +14,7 @@ import (
 	"github.com/versent/saml2aws/v2/pkg/cfg"
 	"github.com/versent/saml2aws/v2/pkg/creds"
 	"github.com/versent/saml2aws/v2/pkg/provider/adfs"
-	"k8s.io/api/core/v1"
 	k8s_errors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
@@ -127,29 +125,19 @@ func (r *Saml2AwsReconciler) createAWSCreds(request reconcile.Request, saml *sam
 	}
 	iniData := generateIni(account.Profile, awsCreds)
 
-	secretData := map[string][]byte{
-		"credentials": iniData,
-	}
-	targetSecret := &v1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      saml.Spec.TargetSecretName,
-			Namespace: saml.Namespace,
-		},
-		Data: secretData,
-	}
-
+	secret, _ := r.targetSecret(saml, iniData)
 	err = r.Get(context.TODO(), types.NamespacedName{
 		Namespace: saml.Namespace,
 		Name:      saml.Spec.TargetSecretName,
-	}, targetSecret)
+	}, secret)
 
 	if err != nil && k8s_errors.IsNotFound(err) {
 		log.Info("Creating aws secret file", "Namespace", saml.Namespace, "Secret", saml.Spec.TargetSecretName)
-		err = r.Create(context.TODO(), targetSecret)
+		err = r.Create(context.TODO(), secret)
 
 		if err != nil {
 			// Creation failed
-			log.Error(err, "Failed to create secret", "Namespace", saml.Namespace, "Name", targetSecret.Name)
+			log.Error(err, "Failed to create secret", "Namespace", saml.Namespace, "Name", secret.Name)
 			return &reconcile.Result{}, err
 		}
 	}

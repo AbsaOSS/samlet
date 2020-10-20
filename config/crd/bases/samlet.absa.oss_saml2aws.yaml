@@ -36,10 +36,14 @@ spec:
         spec:
           description: Saml2AwsSpec defines the desired state of Saml2Aws
           properties:
-            role:
+            roleARN:
               type: string
-            secretRefName:
+            secretName:
               type: string
+            targetSecretName:
+              type: string
+          required:
+          - targetSecretName
           type: object
         status:
           description: Saml2AwsStatus defines the observed state of Saml2Aws

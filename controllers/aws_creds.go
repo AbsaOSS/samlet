@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	b64 "encoding/base64"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -14,9 +13,6 @@ import (
 	"github.com/versent/saml2aws/v2/pkg/cfg"
 	"github.com/versent/saml2aws/v2/pkg/creds"
 	"github.com/versent/saml2aws/v2/pkg/provider/adfs"
-	k8s_errors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
 const (
@@ -76,7 +72,40 @@ func loginToStsUsingRole(account *cfg.IDPAccount, role *saml2aws.AWSRole, samlAs
 	}, nil
 }
 
-func (r *Saml2AwsReconciler) createAWSCreds(request reconcile.Request, saml *samletv1.Saml2Aws) (*reconcile.Result, error) {
+func getCredentials(assertion, role string, account *cfg.IDPAccount) (*awsconfig.AWSCredentials, error) {
+	data, err := b64.StdEncoding.DecodeString(assertion)
+	if err != nil {
+		log.Error(err, "error decoding saml assertion")
+		return nil, err
+	}
+
+	roles, err := saml2aws.ExtractAwsRoles(data)
+	if err != nil {
+		log.Error(err, "error parsing aws roles")
+		return nil, err
+	}
+
+	awsRoles, err := saml2aws.ParseAWSRoles(roles)
+	if err != nil {
+		log.Error(err, "error parsing aws roles")
+		return nil, err
+	}
+
+	awsRole, err := saml2aws.LocateRole(awsRoles, role)
+	if err != nil {
+		log.Error(err, "error locating role")
+		return nil, err
+	}
+
+	awsCreds, err := loginToStsUsingRole(account, awsRole, assertion)
+	if err != nil {
+		log.Error(err, "error logging into aws role using saml assertion")
+		return nil, err
+	}
+	return awsCreds, nil
+}
+
+func (r *Saml2AwsReconciler) createAWSCreds(saml *samletv1.Saml2Aws) (*awsconfig.AWSCredentials, string, error) {
 	loginSecret, _ := r.readSecret(saml.Spec.SecretName, saml.Namespace)
 	user, password := getLoginData(loginSecret)
 
@@ -93,57 +122,13 @@ func (r *Saml2AwsReconciler) createAWSCreds(request reconcile.Request, saml *sam
 	samlAssertion, err := provider.Authenticate(loginDetails)
 	if err != nil {
 		log.Error(err, "error authenticating to IdP")
-		return &reconcile.Result{}, nil
+		return nil, "", err
 
 	}
-
-	data, err := b64.StdEncoding.DecodeString(samlAssertion)
-	if err != nil {
-		log.Error(err, "error decoding saml assertion")
-		return &reconcile.Result{}, nil
-	}
-
-	roles, err := saml2aws.ExtractAwsRoles(data)
-	if err != nil {
-		log.Error(err, "error parsing aws roles")
-		return &reconcile.Result{}, nil
-	}
-
-	awsRoles, err := saml2aws.ParseAWSRoles(roles)
-	if err != nil {
-		log.Error(err, "error parsing aws roles")
-		return &reconcile.Result{}, nil
-	}
-
-	role, err := saml2aws.LocateRole(awsRoles, account.RoleARN)
-	if err != nil {
-		log.Error(err, "error locating role")
-		return &reconcile.Result{}, nil
-	}
-
-	awsCreds, err := loginToStsUsingRole(account, role, samlAssertion)
+	awsCreds, err := getCredentials(samlAssertion, account.RoleARN, account)
 	if err != nil {
 		log.Error(err, "error logging into aws role using saml assertion")
-		return &reconcile.Result{}, nil
+		return nil, "", err
 	}
-	iniData := generateIni(account.Profile, awsCreds)
-
-	secret, _ := r.targetSecret(saml, iniData)
-	err = r.Get(context.TODO(), types.NamespacedName{
-		Namespace: saml.Namespace,
-		Name:      saml.Spec.TargetSecretName,
-	}, secret)
-
-	if err != nil && k8s_errors.IsNotFound(err) {
-		log.Info("Creating aws secret file", "Namespace", saml.Namespace, "Secret", saml.Spec.TargetSecretName)
-		err = r.Create(context.TODO(), secret)
-
-		if err != nil {
-			// Creation failed
-			log.Error(err, "Failed to create secret", "Namespace", saml.Namespace, "Name", secret.Name)
-			return &reconcile.Result{}, err
-		}
-	}
-
-	return nil, nil
+	return awsCreds, account.Profile, nil
 }

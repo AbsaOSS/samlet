@@ -37,7 +37,7 @@ import (
 // These tests use Ginkgo (BDD-style Go testing framework). Refer to
 // http://onsi.github.io/ginkgo/ to learn more about Ginkgo.
 
-var cfg *rest.Config
+var config *rest.Config
 var k8sClient client.Client
 var testEnv *envtest.Environment
 
@@ -58,16 +58,16 @@ var _ = BeforeSuite(func(done Done) {
 	}
 
 	var err error
-	cfg, err = testEnv.Start()
+	config, err = testEnv.Start()
 	Expect(err).ToNot(HaveOccurred())
-	Expect(cfg).ToNot(BeNil())
+	Expect(config).ToNot(BeNil())
 
 	err = samletv1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
 	// +kubebuilder:scaffold:scheme
 
-	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
+	k8sClient, err = client.New(config, client.Options{Scheme: scheme.Scheme})
 	Expect(err).ToNot(HaveOccurred())
 	Expect(k8sClient).ToNot(BeNil())
 

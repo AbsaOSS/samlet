@@ -20,9 +20,11 @@ import (
 	"context"
 
 	"github.com/go-logr/logr"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	samletv1 "github.com/bison-cloud-platform/samlet/api/v1"
 )
@@ -34,13 +36,35 @@ type Saml2AwsReconciler struct {
 	Scheme *runtime.Scheme
 }
 
+var log = logf.Log.WithName("controller_saml")
+
 // +kubebuilder:rbac:groups=samlet.absa.oss,resources=saml2aws,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=samlet.absa.oss,resources=saml2aws/status,verbs=get;update;patch
 
 // Reconcile reconcile loop handler
 func (r *Saml2AwsReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	_ = context.Background()
-	_ = r.Log.WithValues("saml2aws", req.NamespacedName)
+	log = r.Log.WithValues("saml2aws", req.NamespacedName)
+
+	var result *ctrl.Result
+
+	saml := &samletv1.Saml2Aws{}
+	err := r.Get(context.TODO(), req.NamespacedName, saml)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			// Request object not found, could have been deleted after reconcile request.
+			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
+			// Return and don't requeue
+			return ctrl.Result{}, nil
+		}
+		// Error reading the object - requeue the request.
+		return ctrl.Result{}, err
+	}
+
+	result, err = r.createAWSCreds(req, saml)
+	if result != nil {
+		return *result, err
+	}
 
 	// your logic here
 	return ctrl.Result{}, nil

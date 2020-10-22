@@ -30,6 +30,7 @@ type Saml2AwsSpec struct {
 
 	SecretName       string `json:"secretName"`
 	RoleARN          string `json:"roleARN"`
+	SecretFormat     string `json:"secretFormat"`
 	TargetSecretName string `json:"targetSecretName"`
 	IDPEndpoint      string `json:"idpEndpoint,omitempty"`
 }

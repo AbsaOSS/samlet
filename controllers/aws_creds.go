@@ -16,10 +16,10 @@ import (
 )
 
 const (
-	DefaultEndpoint             = "https://sts.absa.co.za"
-	DefaultAmazonWebservicesURN = "urn:amazon:webservices"
-	DefaultSessionDuration      = 3600
-	DefaultProfile              = "saml"
+	defaultEndpoint             = "https://sts.absa.co.za"
+	defaultAmazonWebservicesURN = "urn:amazon:webservices"
+	defaultSessionDuration      = 3600
+	defaultProfile              = "saml"
 )
 
 func formatAccount(url, login, role string) *cfg.IDPAccount {
@@ -30,9 +30,9 @@ func formatAccount(url, login, role string) *cfg.IDPAccount {
 		Provider:             "ADFS",
 		SkipVerify:           false,
 		RoleARN:              role,
-		SessionDuration:      DefaultSessionDuration,
-		Profile:              DefaultProfile,
-		AmazonWebservicesURN: DefaultAmazonWebservicesURN,
+		SessionDuration:      defaultSessionDuration,
+		Profile:              defaultProfile,
+		AmazonWebservicesURN: defaultAmazonWebservicesURN,
 	}
 }
 
@@ -110,7 +110,7 @@ func (r *Saml2AwsReconciler) createAWSCreds(saml *samletv1.Saml2Aws) (*awsconfig
 	user, password := getLoginData(loginSecret)
 
 	if saml.Spec.IDPEndpoint == "" {
-		saml.Spec.IDPEndpoint = DefaultEndpoint
+		saml.Spec.IDPEndpoint = defaultEndpoint
 	}
 	account := formatAccount(saml.Spec.IDPEndpoint, user, saml.Spec.RoleARN)
 	provider, _ := adfs.New(account)

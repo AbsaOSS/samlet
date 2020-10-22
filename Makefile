@@ -121,3 +121,9 @@ bundle: manifests
 .PHONY: bundle-build
 bundle-build:
 	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
+
+.PHONY: lint
+lint:
+	staticcheck ./...
+	errcheck ./...
+	golint '-set_exit_status=1' ./...

@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -38,7 +39,7 @@ type Saml2AwsReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-const RequeueTime = 10
+const requeueTime = 10
 
 var log = logf.Log.WithName("controller_saml")
 
@@ -65,11 +66,21 @@ func (r *Saml2AwsReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		if err != nil {
 			return ctrl.Result{}, err
 		}
-		secretData := generateIni(profile, creds)
-
-		secret, err := r.targetSecret(saml, secretData)
+		secret, err := r.targetSecret(saml)
 		if err != nil {
 			return ctrl.Result{}, err
+		}
+		switch f := saml.Spec.SecretFormat; f {
+		case "credentialsFile":
+			secret, err = generateCredentiasFile(profile, creds, secret)
+			if err != nil {
+				return ctrl.Result{}, fmt.Errorf("failed to generate ini file")
+			}
+		case "envVariables":
+			secret = generateEnvVariables(creds, secret)
+		default:
+			return ctrl.Result{}, fmt.Errorf("invalid secret format")
+
 		}
 
 		err = r.updateSecret(saml.Spec.TargetSecretName, saml.Namespace, secret)
@@ -79,9 +90,12 @@ func (r *Saml2AwsReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 		saml.Status.ExpirationTime = metav1.Time{Time: creds.Expires}
 		saml.Status.RoleARN = saml.Spec.RoleARN
-		r.Status().Update(ctx, saml)
+		err = r.Status().Update(ctx, saml)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
 	}
-	reconcileTime := saml.Status.ExpirationTime.Add(time.Duration(-RequeueTime) * time.Minute)
+	reconcileTime := saml.Status.ExpirationTime.Add(time.Duration(-requeueTime) * time.Minute)
 	log.Info("Reconcile", "Requeue at", reconcileTime)
 	return ctrl.Result{RequeueAfter: time.Until(reconcileTime)}, nil
 }

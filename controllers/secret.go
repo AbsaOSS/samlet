@@ -16,17 +16,14 @@ const (
 	passKey = "password"
 )
 
-func (r *Saml2AwsReconciler) targetSecret(saml *samletv1.Saml2Aws, data []byte) (*v1.Secret, error) {
-	secretData := map[string][]byte{
-		"credentials": data,
-	}
+func (r *Saml2AwsReconciler) targetSecret(saml *samletv1.Saml2Aws) (*v1.Secret, error) {
 
 	secret := &v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      saml.Spec.TargetSecretName,
 			Namespace: saml.Namespace,
 		},
-		Data: secretData,
+		Data: map[string][]byte{},
 	}
 
 	err := controllerutil.SetControllerReference(saml, secret, r.Scheme)

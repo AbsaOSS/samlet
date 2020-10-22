@@ -40,12 +40,15 @@ spec:
               type: string
             roleARN:
               type: string
+            secretFormat:
+              type: string
             secretName:
               type: string
             targetSecretName:
               type: string
           required:
           - roleARN
+          - secretFormat
           - secretName
           - targetSecretName
           type: object

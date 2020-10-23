@@ -18,9 +18,11 @@ package controllers
 
 import (
 	"context"
+	"time"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -36,6 +38,8 @@ type Saml2AwsReconciler struct {
 	Scheme *runtime.Scheme
 }
 
+const RequeueTime = 10
+
 var log = logf.Log.WithName("controller_saml")
 
 // +kubebuilder:rbac:groups=samlet.absa.oss,resources=saml2aws,verbs=get;list;watch;create;update;patch;delete
@@ -43,31 +47,43 @@ var log = logf.Log.WithName("controller_saml")
 
 // Reconcile reconcile loop handler
 func (r *Saml2AwsReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	_ = context.Background()
+	ctx := context.Background()
 	log = r.Log.WithValues("saml2aws", req.NamespacedName)
 
-	var result *ctrl.Result
-
 	saml := &samletv1.Saml2Aws{}
-	err := r.Get(context.TODO(), req.NamespacedName, saml)
+	err := r.Get(ctx, req.NamespacedName, saml)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			// Request object not found, could have been deleted after reconcile request.
-			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
-			// Return and don't requeue
 			return ctrl.Result{}, nil
 		}
 		// Error reading the object - requeue the request.
 		return ctrl.Result{}, err
 	}
 
-	result, err = r.createAWSCreds(req, saml)
-	if result != nil {
-		return *result, err
-	}
+	if needsUpdate(saml) {
+		creds, profile, err := r.createAWSCreds(saml)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+		secretData := generateIni(profile, creds)
 
-	// your logic here
-	return ctrl.Result{}, nil
+		secret, err := r.targetSecret(saml, secretData)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+
+		err = r.updateSecret(saml.Spec.TargetSecretName, saml.Namespace, secret)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+
+		saml.Status.ExpirationTime = metav1.Time{Time: creds.Expires}
+		saml.Status.RoleARN = saml.Spec.RoleARN
+		r.Status().Update(ctx, saml)
+	}
+	reconcileTime := saml.Status.ExpirationTime.Add(time.Duration(-RequeueTime) * time.Minute)
+	log.Info("Reconcile", "Requeue at", reconcileTime)
+	return ctrl.Result{RequeueAfter: time.Until(reconcileTime)}, nil
 }
 
 // SetupWithManager sets up controller with manager

@@ -5,6 +5,7 @@ import (
 
 	samletv1 "github.com/bison-cloud-platform/samlet/api/v1"
 	"k8s.io/api/core/v1"
+	k8s_errors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -39,6 +40,32 @@ func getLoginData(secret *v1.Secret) (string, string) {
 	user := string(secret.Data[userKey])
 	pass := string(secret.Data[passKey])
 	return user, pass
+}
+
+func (r *Saml2AwsReconciler) updateSecret(name, namespace string, secret *v1.Secret) error {
+	err := r.Get(context.TODO(), types.NamespacedName{
+		Namespace: namespace,
+		Name:      name,
+	}, secret)
+
+	if err != nil && k8s_errors.IsNotFound(err) {
+		log.Info("Creating aws secret file",
+			"Namespace", namespace,
+			"Secret", name)
+
+		err = r.Create(context.TODO(), secret)
+		if err != nil {
+			log.Error(err, "Failed to create secret",
+				"Namespace", namespace,
+				"Name", name)
+			return err
+		}
+	}
+	err = r.Update(context.TODO(), secret)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *Saml2AwsReconciler) readSecret(name, namespace string) (*v1.Secret, error) {

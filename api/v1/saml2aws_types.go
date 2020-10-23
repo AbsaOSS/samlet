@@ -36,8 +36,8 @@ type Saml2AwsSpec struct {
 
 // Saml2AwsStatus defines the observed state of Saml2Aws
 type Saml2AwsStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	RoleARN        string      `json:"roleARN,omitempty"`
+	ExpirationTime metav1.Time `json:"expirationTime,omitempty"`
 }
 
 // +kubebuilder:object:root=true

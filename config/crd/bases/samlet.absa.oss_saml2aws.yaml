@@ -36,6 +36,8 @@ spec:
         spec:
           description: Saml2AwsSpec defines the desired state of Saml2Aws
           properties:
+            idpEndpoint:
+              type: string
             roleARN:
               type: string
             secretName:
@@ -43,10 +45,18 @@ spec:
             targetSecretName:
               type: string
           required:
+          - roleARN
+          - secretName
           - targetSecretName
           type: object
         status:
           description: Saml2AwsStatus defines the observed state of Saml2Aws
+          properties:
+            expirationTime:
+              format: date-time
+              type: string
+            roleARN:
+              type: string
           type: object
       type: object
   version: v1

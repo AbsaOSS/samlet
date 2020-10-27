@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"time"
 
+	configreader "github.com/bison-cloud-platform/samlet/controllers/config"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -37,6 +38,7 @@ type Saml2AwsReconciler struct {
 	client.Client
 	Log    logr.Logger
 	Scheme *runtime.Scheme
+	Config *configreader.Config
 }
 
 const requeueTime = 10

@@ -20,6 +20,7 @@ import (
 	"flag"
 	"os"
 
+	"context"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -29,6 +30,7 @@ import (
 
 	samletv1 "github.com/bison-cloud-platform/samlet/api/v1"
 	"github.com/bison-cloud-platform/samlet/controllers"
+	"github.com/bison-cloud-platform/samlet/controllers/config"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -68,11 +70,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.Saml2AwsReconciler{
+	reconciler := &controllers.Saml2AwsReconciler{
 		Client: mgr.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("Saml2Aws"),
 		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
+	}
+	reconciler.Config, err = config.GetConfig()
+	if err != nil {
+		setupLog.Error(err, "reading config env variables")
+	}
+	if err = reconciler.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Saml2Aws")
 		os.Exit(1)
 	}

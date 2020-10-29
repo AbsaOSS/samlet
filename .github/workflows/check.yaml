@@ -1,0 +1,16 @@
+name: Check
+
+on: pull_request
+
+jobs:
+  go-pipeline:
+    name: Go Checks
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: go1.14 linter
+      uses: absaoss/golang-pipeline/go1.14/linter@master
+      with:
+        GOLINT: on
+        MISSPELL: off

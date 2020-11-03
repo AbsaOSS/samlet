@@ -3,14 +3,14 @@ name: Check
 on: pull_request
 
 jobs:
-  go-pipeline:
+  golang-ci:
     name: Go Checks
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-    - name: go1.14 linter
-      uses: absaoss/golang-pipeline/go1.14/linter@master
+    - name: golang-ci
+      uses: golangci/golangci-lint-action@v2
       with:
-        GOLINT: on
-        MISSPELL: off
+        version: v1.32
+        args: --deadline 2m

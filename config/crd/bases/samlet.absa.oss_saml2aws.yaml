@@ -44,6 +44,8 @@ spec:
               type: string
             secretName:
               type: string
+            sessionDuration:
+              type: string
             targetSecretName:
               type: string
           required:

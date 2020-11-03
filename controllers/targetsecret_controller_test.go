@@ -16,6 +16,9 @@ var _ = Describe("Samlet Controller", func() {
 	const timeout = time.Second * 10
 	const interval = time.Second * 1
 	const awsEnvAccessKey = "AWS_SECRET_ACCESS_KEY"
+	const secretExpireKey = "X_SECURITY_TOKEN_EXPIRES"
+	const duration = "2h"
+	const localLayout = "2006-01-02 15:04:05 -0700 MST"
 
 	Context("Secrets", func() {
 		var (
@@ -111,6 +114,28 @@ var _ = Describe("Samlet Controller", func() {
 			_ = k8sClient.Get(context.Background(), targetSecretMeta, s)
 			Expect(string(s.Data[awsEnvAccessKey])).NotTo(Equal("broken"))
 
+		})
+		It("It sets desired DurationSeconds", func() {
+			By("Updating SessionDuration key")
+			updObj := &samletv1.Saml2Aws{}
+			_ = k8sClient.Get(context.Background(), samlMeta, updObj)
+			updObj.Spec.SessionDuration = duration
+			Eventually(func() error {
+				return k8sClient.Status().Update(context.Background(), updObj)
+			}, timeout, interval).Should(Succeed())
+
+			By("Getting updated target secret")
+			s := &v1.Secret{}
+			_ = k8sClient.Get(context.Background(), targetSecretMeta, s)
+
+			timeFromSecret, err := time.Parse(localLayout, string(s.Data[secretExpireKey]))
+			Expect(err).ToNot(HaveOccurred())
+
+			timeDuration, err := time.ParseDuration(duration)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(timeFromSecret.Before(time.Now().Add(timeDuration * time.Second))).
+				Should(BeTrue())
 		})
 	})
 })

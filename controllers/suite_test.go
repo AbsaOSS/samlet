@@ -22,8 +22,10 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"testing"
 	"text/template"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -45,6 +47,7 @@ const (
 	idpEndpointKey = "IDP_ENDPOINT"
 	awsEndpointKey = "AWS_ENDPOINT"
 	awsRegionKey   = "AWS_REGION"
+	durationKey    = "DurationSeconds"
 )
 
 // These tests use Ginkgo (BDD-style Go testing framework). Refer to
@@ -71,9 +74,12 @@ func returnSamlPage(w http.ResponseWriter, req *http.Request) {
 	_, _ = w.Write(data)
 }
 func returnAWSCreds(w http.ResponseWriter, req *http.Request) {
-	data, _ := ioutil.ReadFile("../testdata/awsResponse.xml")
+	_ = req.ParseForm()
+	duration, _ := strconv.Atoi(req.Form.Get(durationKey))
+	expireTime := time.Now().UTC().Add(time.Duration(duration) * time.Second)
 	w.Header().Set("Content-Type", "text/xml")
-	_, _ = w.Write(data)
+	tpl := template.Must(template.ParseFiles("../testdata/awsResponse.tmpl"))
+	_ = tpl.Execute(w, expireTime.Format(time.RFC3339))
 }
 
 func startHttp() {

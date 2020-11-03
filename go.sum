@@ -3,6 +3,8 @@ cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMT
 cloud.google.com/go v0.38.0 h1:ROfEUZz+Gh5pa62DJWXSaonyu3StP6EA6lPEXPI6mCo=
 cloud.google.com/go v0.38.0/go.mod h1:990N+gfupTy94rShfmMCWGDn0LpTmnzTp2qbd1dvSRU=
 github.com/99designs/keyring v0.0.0-20190110203331-82da6802f65f/go.mod h1:aKt8W/yd91/xHY6ixZAJZ2vYbhr3pP8DcrvuGSGNPJk=
+github.com/AbsaOSS/gopkg v0.0.1 h1:YHnVBH1X/R0/m1lvtFosohRzUUpL3x1GK+VTivQ3yNU=
+github.com/AbsaOSS/gopkg v0.0.1/go.mod h1:/zbduJhMGK57g88nkewqowqaNjChJdb/CrkOMSZi4dU=
 github.com/AlecAivazis/survey/v2 v2.1.1 h1:LEMbHE0pLj75faaVEKClEX1TM4AJmmnOh9eimREzLWI=
 github.com/AlecAivazis/survey/v2 v2.1.1/go.mod h1:9FJRdMdDm8rnT+zHVbvQT2RTSTLq0Ttd6q3Vl2fahjk=
 github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78/go.mod h1:LmzpDX56iTiv29bbRTIsUNlaFfuhWRQBWjQdVyAevI8=

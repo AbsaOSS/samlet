@@ -3,6 +3,7 @@ module github.com/bison-cloud-platform/samlet
 go 1.15
 
 require (
+	github.com/AbsaOSS/gopkg v0.0.1
 	github.com/aws/aws-sdk-go v1.35.10
 	github.com/go-logr/logr v0.1.0
 	github.com/onsi/ginkgo v1.12.1

@@ -1,9 +1,7 @@
 package config
 
 import (
-	// this is a copy of https://github.com/AbsaOSS/k8gb/blob/master/controllers/internal/env/env.go
-	// https://github.com/AbsaOSS/k8gb/issues/185
-	"github.com/bison-cloud-platform/samlet/controllers/internal/env"
+	"github.com/AbsaOSS/gopkg/env"
 	"github.com/pkg/errors"
 )
 
@@ -17,17 +15,14 @@ const (
 type Config struct {
 	IDPEndpoint     string
 	AWSRegion       string
-	SessionDuration int
+	SessionDuration string
 }
 
 // GetConfig returns operator config structure
 func GetConfig() (*Config, error) {
 	idpEndpoint := env.GetEnvAsStringOrFallback(idpEndpointKey, "")
 	awsRegion := env.GetEnvAsStringOrFallback(awsRegionKey, "")
-	sessionDuration, err := env.GetEnvAsIntOrFallback(sessionDurationKey, 3600)
-	if err != nil {
-		return nil, err
-	}
+	sessionDuration := env.GetEnvAsStringOrFallback(sessionDurationKey, "1h")
 	if idpEndpoint == "" {
 		return nil, errors.New("IDPEndpoint can't be empty")
 	}

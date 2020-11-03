@@ -3,6 +3,7 @@ package controllers
 import (
 	b64 "encoding/base64"
 	"os"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -23,7 +24,11 @@ const (
 	defaultProfile              = "saml"
 )
 
-func formatAccount(config *configreader.Config, login, role string) *cfg.IDPAccount {
+func formatAccount(config *configreader.Config, login, role string) (*cfg.IDPAccount, error) {
+	timeDuration, err := time.ParseDuration(config.SessionDuration)
+	if err != nil {
+		return nil, err
+	}
 	return &cfg.IDPAccount{
 		URL:                  config.IDPEndpoint,
 		Username:             login,
@@ -32,10 +37,10 @@ func formatAccount(config *configreader.Config, login, role string) *cfg.IDPAcco
 		SkipVerify:           false,
 		Region:               config.AWSRegion,
 		RoleARN:              role,
-		SessionDuration:      config.SessionDuration,
+		SessionDuration:      int(timeDuration.Seconds()),
 		Profile:              defaultProfile,
 		AmazonWebservicesURN: defaultAmazonWebservicesURN,
-	}
+	}, nil
 }
 
 func loginToStsUsingRole(account *cfg.IDPAccount, role *saml2aws.AWSRole, samlAssertion string) (*awsconfig.AWSCredentials, error) {
@@ -122,8 +127,15 @@ func (r *Saml2AwsReconciler) createAWSCreds(saml *samletv1.Saml2Aws) (*awsconfig
 	}
 	user, password := getLoginData(loginSecret)
 
-	account := formatAccount(r.Config, user, saml.Spec.RoleARN)
-	provider, _ := adfs.New(account)
+	account, err := formatAccount(r.Config, user, saml.Spec.RoleARN)
+	if err != nil {
+		return nil, "", err
+	}
+
+	provider, err := adfs.New(account)
+	if err != nil {
+		return nil, "", err
+	}
 	loginDetails := &creds.LoginDetails{
 		Username: account.Username,
 		URL:      account.URL,

@@ -2,11 +2,13 @@ package controllers
 
 import (
 	b64 "encoding/base64"
+	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sts"
 	samletv1 "github.com/bison-cloud-platform/samlet/api/v1"
+	configreader "github.com/bison-cloud-platform/samlet/controllers/config"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/versent/saml2aws/v2"
@@ -21,15 +23,16 @@ const (
 	defaultProfile              = "saml"
 )
 
-func formatAccount(url, login, role string, duration int) *cfg.IDPAccount {
+func formatAccount(config *configreader.Config, login, role string) *cfg.IDPAccount {
 	return &cfg.IDPAccount{
-		URL:                  url,
+		URL:                  config.IDPEndpoint,
 		Username:             login,
 		MFA:                  "Azure",
 		Provider:             "ADFS",
 		SkipVerify:           false,
+		Region:               config.AWSRegion,
 		RoleARN:              role,
-		SessionDuration:      duration,
+		SessionDuration:      config.SessionDuration,
 		Profile:              defaultProfile,
 		AmazonWebservicesURN: defaultAmazonWebservicesURN,
 	}
@@ -37,9 +40,16 @@ func formatAccount(url, login, role string, duration int) *cfg.IDPAccount {
 
 func loginToStsUsingRole(account *cfg.IDPAccount, role *saml2aws.AWSRole, samlAssertion string) (*awsconfig.AWSCredentials, error) {
 
-	sess, err := session.NewSession(&aws.Config{
+	awsConfig := &aws.Config{
 		Region: &account.Region,
-	})
+	}
+	awsEndpoint, present := os.LookupEnv("AWS_ENDPOINT")
+
+	if present {
+		awsConfig.Endpoint = &awsEndpoint
+	}
+
+	sess, err := session.NewSession(awsConfig)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create session")
 	}
@@ -105,10 +115,14 @@ func getCredentials(assertion, role string, account *cfg.IDPAccount) (*awsconfig
 }
 
 func (r *Saml2AwsReconciler) createAWSCreds(saml *samletv1.Saml2Aws) (*awsconfig.AWSCredentials, string, error) {
-	loginSecret, _ := r.readSecret(saml.Spec.SecretName, saml.Namespace)
+	loginSecret, err := r.readSecret(saml.Spec.SecretName, saml.Namespace)
+	if err != nil {
+		return nil, "", err
+
+	}
 	user, password := getLoginData(loginSecret)
 
-	account := formatAccount(r.Config.IDPEndpoint, user, saml.Spec.RoleARN, r.Config.SessionDuration)
+	account := formatAccount(r.Config, user, saml.Spec.RoleARN)
 	provider, _ := adfs.New(account)
 	loginDetails := &creds.LoginDetails{
 		Username: account.Username,

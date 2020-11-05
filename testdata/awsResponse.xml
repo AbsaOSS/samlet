@@ -1,0 +1,22 @@
+<AssumeRoleWithSAMLResponse xmlns="https://sts.amazonaws.com/doc/2011-06-15/">
+  <AssumeRoleWithSAMLResult>
+    <Audience>http://localhost:3000/saml</Audience>
+    <AssumedRoleUser>
+      <AssumedRoleId>AROA5H63ZI3AZ2LHLM3AQ:foo@example.com</AssumedRoleId>
+      <Arn>arn:aws:sts::123456789012:assumed-role/role-name/foo@example.com</Arn>
+    </AssumedRoleUser>
+    <Credentials>
+      <AccessKeyId>ACCESKEYID</AccessKeyId>
+      <SecretAccessKey>ACCESSECRETKEY</SecretAccessKey>
+      <SessionToken>SESSIONTOKEN</SessionToken>
+      <Expiration>2020-11-05T13:13:53Z</Expiration>
+    </Credentials>
+    <Subject>EXAMPLE\foo</Subject>
+    <NameQualifier>gw3KmztaPnnVw2PcauAEjfM1g7I=</NameQualifier>
+    <SubjectType>persistent</SubjectType>
+    <Issuer>http://adfs.example.com/adfs/services/trust</Issuer>
+  </AssumeRoleWithSAMLResult>
+  <ResponseMetadata>
+    <RequestId>bb7056c0-b7d4-466b-87b5-d28197d67e9b</RequestId>
+  </ResponseMetadata>
+</AssumeRoleWithSAMLResponse>

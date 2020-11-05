@@ -40,10 +40,11 @@ func getLoginData(secret *v1.Secret) (string, string) {
 }
 
 func (r *Saml2AwsReconciler) updateSecret(name, namespace string, secret *v1.Secret) error {
+	existingSecret := &v1.Secret{}
 	err := r.Get(context.TODO(), types.NamespacedName{
 		Namespace: namespace,
 		Name:      name,
-	}, secret)
+	}, existingSecret)
 
 	if err != nil && k8s_errors.IsNotFound(err) {
 		log.Info("Creating aws secret file",
@@ -51,6 +52,7 @@ func (r *Saml2AwsReconciler) updateSecret(name, namespace string, secret *v1.Sec
 			"Secret", name)
 
 		err = r.Create(context.TODO(), secret)
+
 		if err != nil {
 			log.Error(err, "Failed to create secret",
 				"Namespace", namespace,

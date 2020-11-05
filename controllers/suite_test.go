@@ -17,13 +17,19 @@ limitations under the License.
 package controllers
 
 import (
+	"encoding/base64"
+	"io/ioutil"
+	"net/http"
+	"os"
 	"path/filepath"
 	"testing"
+	"text/template"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"sigs.k8s.io/controller-runtime/pkg/envtest/printer"
@@ -31,7 +37,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	samletv1 "github.com/bison-cloud-platform/samlet/api/v1"
+	configreader "github.com/bison-cloud-platform/samlet/controllers/config"
 	// +kubebuilder:scaffold:imports
+)
+
+const (
+	idpEndpointKey = "IDP_ENDPOINT"
+	awsEndpointKey = "AWS_ENDPOINT"
+	awsRegionKey   = "AWS_REGION"
 )
 
 // These tests use Ginkgo (BDD-style Go testing framework). Refer to
@@ -39,11 +52,42 @@ import (
 
 var config *rest.Config
 var k8sClient client.Client
+var k8sManager ctrl.Manager
 var testEnv *envtest.Environment
+var err error
+
+func returnAssertion(w http.ResponseWriter, req *http.Request) {
+	rawData, _ := ioutil.ReadFile("../testdata/assertion.xml")
+	b64Data := base64.StdEncoding.EncodeToString([]byte(rawData))
+	tpl := template.Must(template.ParseFiles("../testdata/samlResponse.tmpl"))
+	_ = tpl.Execute(w, b64Data)
+}
+func returnLoginPage(w http.ResponseWriter, req *http.Request) {
+	data, _ := ioutil.ReadFile("../testdata/loginpage.html")
+	_, _ = w.Write(data)
+}
+func returnSamlPage(w http.ResponseWriter, req *http.Request) {
+	data, _ := ioutil.ReadFile("../testdata/saml.html")
+	_, _ = w.Write(data)
+}
+func returnAWSCreds(w http.ResponseWriter, req *http.Request) {
+	data, _ := ioutil.ReadFile("../testdata/awsResponse.xml")
+	w.Header().Set("Content-Type", "text/xml")
+	_, _ = w.Write(data)
+}
+
+func startHttp() {
+	http.HandleFunc("/adfs/ls/idpinitiatedsignon", returnAssertion)
+	http.HandleFunc("/adfs/", returnLoginPage)
+	http.HandleFunc("/saml/", returnSamlPage)
+	http.HandleFunc("/aws/", returnAWSCreds)
+	_ = http.ListenAndServe(":3000", nil)
+}
 
 func TestAPIs(t *testing.T) {
 	RegisterFailHandler(Fail)
 
+	go startHttp()
 	RunSpecsWithDefaultAndCustomReporters(t,
 		"Controller Suite",
 		[]Reporter{printer.NewlineReporter{}})
@@ -57,18 +101,41 @@ var _ = BeforeSuite(func(done Done) {
 		CRDDirectoryPaths: []string{filepath.Join("..", "config", "crd", "bases")},
 	}
 
-	var err error
 	config, err = testEnv.Start()
 	Expect(err).ToNot(HaveOccurred())
 	Expect(config).ToNot(BeNil())
 
 	err = samletv1.AddToScheme(scheme.Scheme)
-	Expect(err).NotTo(HaveOccurred())
+	Expect(err).ToNot(HaveOccurred())
 
 	// +kubebuilder:scaffold:scheme
-
-	k8sClient, err = client.New(config, client.Options{Scheme: scheme.Scheme})
+	k8sManager, err = ctrl.NewManager(config, ctrl.Options{
+		Scheme: scheme.Scheme,
+	})
 	Expect(err).ToNot(HaveOccurred())
+
+	err = os.Setenv(idpEndpointKey, "http://localhost:3000")
+	Expect(err).ToNot(HaveOccurred())
+
+	err = os.Setenv(awsEndpointKey, "http://localhost:3000/aws")
+	Expect(err).ToNot(HaveOccurred())
+
+	// when setting aws endpoint region becomes mandatory
+	err = os.Setenv(awsRegionKey, "us-west-1")
+	Expect(err).ToNot(HaveOccurred())
+
+	ctrlConf, _ := configreader.GetConfig()
+	err = (&Saml2AwsReconciler{
+		Client: k8sManager.GetClient(),
+		Log:    ctrl.Log.WithName("controller_saml"),
+		Config: ctrlConf,
+		Scheme: scheme.Scheme,
+	}).SetupWithManager(k8sManager)
+	go func() {
+		err = k8sManager.Start(ctrl.SetupSignalHandler())
+		Expect(err).ToNot(HaveOccurred())
+	}()
+	k8sClient = k8sManager.GetClient()
 	Expect(k8sClient).ToNot(BeNil())
 
 	close(done)

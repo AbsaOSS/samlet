@@ -9,18 +9,21 @@ import (
 
 const (
 	idpEndpointKey     = "IDP_ENDPOINT"
+	awsRegionKey       = "AWS_REGION"
 	sessionDurationKey = "SESSION_DURATION"
 )
 
 // Config structure
 type Config struct {
 	IDPEndpoint     string
+	AWSRegion       string
 	SessionDuration int
 }
 
 // GetConfig returns operator config structure
 func GetConfig() (*Config, error) {
 	idpEndpoint := env.GetEnvAsStringOrFallback(idpEndpointKey, "")
+	awsRegion := env.GetEnvAsStringOrFallback(awsRegionKey, "")
 	sessionDuration, err := env.GetEnvAsIntOrFallback(sessionDurationKey, 3600)
 	if err != nil {
 		return nil, err
@@ -31,5 +34,6 @@ func GetConfig() (*Config, error) {
 	return &Config{
 		IDPEndpoint:     idpEndpoint,
 		SessionDuration: sessionDuration,
+		AWSRegion:       awsRegion,
 	}, nil
 }

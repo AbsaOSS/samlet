@@ -63,23 +63,31 @@ func returnAssertion(w http.ResponseWriter, req *http.Request) {
 	rawData, _ := ioutil.ReadFile("../testdata/assertion.xml")
 	b64Data := base64.StdEncoding.EncodeToString([]byte(rawData))
 	tpl := template.Must(template.ParseFiles("../testdata/samlResponse.tmpl"))
-	_ = tpl.Execute(w, b64Data)
+	err := tpl.Execute(w, b64Data)
+	if err != nil { panic(err) }
 }
 func returnLoginPage(w http.ResponseWriter, req *http.Request) {
-	data, _ := ioutil.ReadFile("../testdata/loginpage.html")
-	_, _ = w.Write(data)
+	data, err := ioutil.ReadFile("../testdata/loginpage.html")
+	if err != nil { panic(err) }
+	_, err = w.Write(data)
+	if err != nil { panic(err) }
 }
 func returnSamlPage(w http.ResponseWriter, req *http.Request) {
-	data, _ := ioutil.ReadFile("../testdata/saml.html")
-	_, _ = w.Write(data)
+	data, err := ioutil.ReadFile("../testdata/saml.html")
+	if err != nil { panic(err) }
+	_, err = w.Write(data)
+	if err != nil { panic(err) }
 }
 func returnAWSCreds(w http.ResponseWriter, req *http.Request) {
-	_ = req.ParseForm()
-	duration, _ := strconv.Atoi(req.Form.Get(durationKey))
+	err := req.ParseForm()
+	if err != nil { panic(err) }
+	duration, err := strconv.Atoi(req.Form.Get(durationKey))
+	if err != nil { panic(err) }
 	expireTime := time.Now().UTC().Add(time.Duration(duration) * time.Second)
 	w.Header().Set("Content-Type", "text/xml")
 	tpl := template.Must(template.ParseFiles("../testdata/awsResponse.tmpl"))
-	_ = tpl.Execute(w, expireTime.Format(time.RFC3339))
+	err = tpl.Execute(w, expireTime.Format(time.RFC3339))
+	if err != nil { panic(err) }
 }
 
 func startHttp() {
@@ -87,7 +95,8 @@ func startHttp() {
 	http.HandleFunc("/adfs/", returnLoginPage)
 	http.HandleFunc("/saml/", returnSamlPage)
 	http.HandleFunc("/aws/", returnAWSCreds)
-	_ = http.ListenAndServe(":3000", nil)
+	err := http.ListenAndServe(":3000", nil)
+	if err != nil { panic(err) }
 }
 
 func TestAPIs(t *testing.T) {

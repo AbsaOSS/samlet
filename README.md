@@ -1,14 +1,14 @@
 # samlet
-Samlet is a saml2aws k8s operator based on [saml2aws](https://github.com/Versent/saml2aws)
+Samlet is a Kubernetes operator based on [saml2aws](https://github.com/Versent/saml2aws)
 
 # Why
-saml2aws allows you to generate kubernetes secrets in either `envVariables` or `credentialsFile` and rotate them 10 minutes before expiration period. Reloading 
+Samlet allows you to generate Kubernetes secrets in either `envVariables` or `credentialsFile` and rotate them 10 minutes before expiration period. Reloading 
 credentials and watching expiration time logic is left to a consumer.
 
 # Example
 ## envVariables
 Following `Saml2Aws` resource will request AWS credentials valid for 2 hours using `example-login` (credentail keys are `username` and `password`) credentials and create new `target-secret`.
-```
+```yaml
 apiVersion: samlet.absa.oss/v1
 kind: Saml2Aws
 metadata:
@@ -26,10 +26,10 @@ spec:
   roleARN: arn:aws:iam::888888888888:role/adfs-saml2aws-sample-role
 ```
 resulting `envVariables` type secret could be consumed in Pod like:
-```
+```yaml
     envFrom:
       - secretRef:
          name: target-secret
 ```
 ## credentialsFile
-Credentials file type secret formats target secret content in a way so it can be mounted into a pod as a volume. Once mounted it can be uses as standard `.aws/credentials` ini file.
+Credentials file type formats target secret content in a way so it can be mounted into a Pod as a volume. Once mounted it can be used as standard `.aws/credentials` ini file.

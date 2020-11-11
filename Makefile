@@ -32,7 +32,7 @@ ENVTEST_ASSETS_DIR = $(shell pwd)/testbin
 KUBEBUILDER_ASSETS = $(ENVTEST_ASSETS_DIR)/bin
 test: generate fmt vet manifests
 	mkdir -p $(ENVTEST_ASSETS_DIR)
-	$(ENVTEST_ASSETS_DIR)/setup-envtest.sh $(ENVTEST_ASSETS_DIR); KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) go test ./... -coverprofile cover.out
+	$(ENVTEST_ASSETS_DIR)/setup-envtest.sh $(ENVTEST_ASSETS_DIR); KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) go test ./... -v -ginkgo.v -coverprofile cover.out
 
 # Build manager binary
 manager: generate fmt vet

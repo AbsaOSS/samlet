@@ -2,12 +2,15 @@
 Samlet is a Kubernetes operator based on [saml2aws](https://github.com/Versent/saml2aws)
 
 # Why
-Samlet allows you to generate Kubernetes secrets in either `envVariables` or `credentialsFile` and rotate them 10 minutes before expiration period. Reloading 
+Samlet provides Kubernetes applications tied to organization IdP with seamless access to AWS resources via [SAML 2.0 identity federation](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_saml.html).  
+It stores generated AWS session credentials as k8s Secrets, so that they can be consumed by application container as mounted [AWS credentials file](https://docs.aws.amazon.com/credref/latest/refdocs/creds-config-files.html) or wired as [AWS SDK environment variables](https://docs.aws.amazon.com/credref/latest/refdocs/environment-variables.html).
+Secrets are automatically rotated 10 minutes before expiration period. Reloading 
 credentials and watching expiration time logic is left to a consumer.
 
 # Example
-## envVariables
-Following `Saml2Aws` resource will request AWS credentials valid for 2 hours using `example-login` (credentail keys are `username` and `password`) credentials and create new `target-secret`.
+## Environment variables
+Following `Saml2Aws` Custom Resource, once created in k8s cluster, will case Samlet operator to request AWS credentials valid for 2 hours using `example-login` (credential keys are `username` and `password`) credentials and create new `target-secret` with AWS SDK environment variables. 
+These environment variables can be then wired from the secret to an application pod using `envFrom` option in Pod manifest.
 ```yaml
 apiVersion: samlet.absa.oss/v1
 kind: Saml2Aws
@@ -31,5 +34,5 @@ resulting `envVariables` type secret could be consumed in Pod like:
       - secretRef:
          name: target-secret
 ```
-## credentialsFile
+## Credentials file
 Credentials file type formats target secret content in a way so it can be mounted into a Pod as a volume. Once mounted it can be used as standard `.aws/credentials` ini file.

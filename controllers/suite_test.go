@@ -64,30 +64,46 @@ func returnAssertion(w http.ResponseWriter, req *http.Request) {
 	b64Data := base64.StdEncoding.EncodeToString([]byte(rawData))
 	tpl := template.Must(template.ParseFiles("../testdata/samlResponse.tmpl"))
 	err := tpl.Execute(w, b64Data)
-	if err != nil { panic(err) }
+	if err != nil {
+		Fail("Fail to process samlResponse template")
+	}
 }
 func returnLoginPage(w http.ResponseWriter, req *http.Request) {
 	data, err := ioutil.ReadFile("../testdata/loginpage.html")
-	if err != nil { panic(err) }
+	if err != nil {
+		Fail("Fail to read loginpage.html")
+	}
 	_, err = w.Write(data)
-	if err != nil { panic(err) }
+	if err != nil {
+		Fail("Fail to write response")
+	}
 }
 func returnSamlPage(w http.ResponseWriter, req *http.Request) {
 	data, err := ioutil.ReadFile("../testdata/saml.html")
-	if err != nil { panic(err) }
+	if err != nil {
+		Fail("Fail to read saml.html")
+	}
 	_, err = w.Write(data)
-	if err != nil { panic(err) }
+	if err != nil {
+		Fail("Fail to write response")
+	}
 }
 func returnAWSCreds(w http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
-	if err != nil { panic(err) }
+	if err != nil {
+		Fail("Fail to parse request")
+	}
 	duration, err := strconv.Atoi(req.Form.Get(durationKey))
-	if err != nil { panic(err) }
+	if err != nil {
+		Fail("Fail to get DurationSeconds")
+	}
 	expireTime := time.Now().UTC().Add(time.Duration(duration) * time.Second)
 	w.Header().Set("Content-Type", "text/xml")
 	tpl := template.Must(template.ParseFiles("../testdata/awsResponse.tmpl"))
 	err = tpl.Execute(w, expireTime.Format(time.RFC3339))
-	if err != nil { panic(err) }
+	if err != nil {
+		Fail("Fail to process awsResponse template")
+	}
 }
 
 func startHttp() {
@@ -96,7 +112,9 @@ func startHttp() {
 	http.HandleFunc("/saml/", returnSamlPage)
 	http.HandleFunc("/aws/", returnAWSCreds)
 	err := http.ListenAndServe(":3000", nil)
-	if err != nil { panic(err) }
+	if err != nil {
+		Fail("Fail to start http server on port 3000")
+	}
 }
 
 func TestAPIs(t *testing.T) {

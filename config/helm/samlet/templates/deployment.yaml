@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: samlet-controller 
+  labels:
+{{ include "samlet.labels" . | indent 4  }}
+spec:
+  selector:
+    matchLabels:
+      controller: samlet 
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        controller: samlet 
+    spec:
+      containers:
+      - command:
+        - /manager
+        args:
+        - --enable-leader-election
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag | default "latest" }}
+        name: samlet
+        env:
+          - name: IDP_ENDPOINT
+            value: {{ .Values.samlet.idpEndpoint }} 
+          - name: SESSION_DURATION
+            value: {{ .Values.samlet.sessionDuration }}
+        resources:
+          limits:
+            cpu: 100m
+            memory: 30Mi
+          requests:
+            cpu: 100m
+            memory: 20Mi
+      terminationGracePeriodSeconds: 10

@@ -47,6 +47,7 @@ var log = logf.Log.WithName("controller_saml")
 
 // +kubebuilder:rbac:groups=samlet.absa.oss,resources=saml2aws,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=samlet.absa.oss,resources=saml2aws/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile reconcile loop handler
 func (r *Saml2AwsReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {

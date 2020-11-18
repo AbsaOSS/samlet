@@ -18,3 +18,9 @@ jobs:
         repository: absaoss/samlet
         dockerfile: Dockerfile
         tag_with_ref: true
+    - uses: dave-mcconnell/helm-gh-pages-microservices@master
+      with:
+        access-token: ${{ secrets.REPO_TOKEN }}
+        source-charts-folder: 'config/helm'
+        destination-repo: absaoss/samlet
+        destination-branch: gh-pages

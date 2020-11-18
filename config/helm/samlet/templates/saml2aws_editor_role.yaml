@@ -1,0 +1,24 @@
+# permissions for end users to edit saml2aws.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: saml2aws-editor-role
+rules:
+- apiGroups:
+  - samlet.absa.oss
+  resources:
+  - saml2aws
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - samlet.absa.oss
+  resources:
+  - saml2aws/status
+  verbs:
+  - get

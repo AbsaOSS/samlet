@@ -8,6 +8,9 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   tag: latest 
 
+# Define any additional environment variables like HTTPS_PROXY etc.
+env: []
+
 samlet:
   # ADFS idp endpoint (required)
   #idpEndpoint: "https://example.com"

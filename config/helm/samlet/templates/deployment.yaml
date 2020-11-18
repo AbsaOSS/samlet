@@ -26,6 +26,10 @@ spec:
             value: {{ .Values.samlet.idpEndpoint }} 
           - name: SESSION_DURATION
             value: {{ .Values.samlet.sessionDuration }}
+          {{- range $k, $v := .Values.env }}
+          - name: {{ $k }}
+            value: {{ $v | quote }}
+          {{- end }}
         resources:
           limits:
             cpu: 100m

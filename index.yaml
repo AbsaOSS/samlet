@@ -3,12 +3,12 @@ entries:
   samlet:
   - apiVersion: v2
     appVersion: 0.1.0
-    created: "2020-11-18T11:36:41.366973+01:00"
+    created: "2020-11-18T11:43:00.298657+01:00"
     description: A Helm chart for Kubernetes
-    digest: 63637f6344f9165ea2960d3e8ba9d0f7ee56988c903f4d4edb45173c47ccd570
+    digest: bf9d7257347ff33da569b6669299eb6ad4deb8d9756f17cb9046e4dd6a905259
     name: samlet
     type: application
     urls:
-    - charts/samlet-0.1.2.tgz
-    version: 0.1.2
-generated: "2020-11-18T11:36:41.366132+01:00"
+    - charts/samlet-0.1.3.tgz
+    version: 0.1.3
+generated: "2020-11-18T11:43:00.298164+01:00"

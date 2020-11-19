@@ -91,16 +91,17 @@ func (r *Saml2AwsReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			return ctrl.Result{}, err
 		}
 
-		saml.Status.ExpirationTime = metav1.Time{Time: creds.Expires}
+		// we want to expire credentials internally slightly (10 minutes) before actual
+		// expiration. In order to have safe window for credential rotation
+		expireTime := creds.Expires.Add(time.Duration(-requeueTime) * time.Minute)
+		saml.Status.ExpirationTime = metav1.Time{Time: expireTime}
 		saml.Status.RoleARN = saml.Spec.RoleARN
 		err = r.Status().Update(ctx, saml)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
 	}
-	reconcileTime := saml.Status.ExpirationTime.Add(time.Duration(-requeueTime) * time.Minute)
-	log.Info("Reconcile", "Requeue at", reconcileTime)
-	return ctrl.Result{RequeueAfter: time.Until(reconcileTime)}, nil
+	return ctrl.Result{RequeueAfter: time.Minute * time.Duration(1)}, nil
 }
 
 // SetupWithManager sets up controller with manager

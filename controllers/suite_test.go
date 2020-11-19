@@ -44,10 +44,11 @@ import (
 )
 
 const (
-	idpEndpointKey = "IDP_ENDPOINT"
-	awsEndpointKey = "AWS_ENDPOINT"
-	awsRegionKey   = "AWS_REGION"
-	durationKey    = "DurationSeconds"
+	idpEndpointKey     = "IDP_ENDPOINT"
+	awsEndpointKey     = "AWS_ENDPOINT"
+	awsRegionKey       = "AWS_REGION"
+	durationKey        = "DurationSeconds"
+	sessionDurationKey = "SESSION_DURATION"
 )
 
 // These tests use Ginkgo (BDD-style Go testing framework). Refer to
@@ -151,6 +152,9 @@ var _ = BeforeSuite(func(done Done) {
 	Expect(err).ToNot(HaveOccurred())
 
 	err = os.Setenv(awsEndpointKey, "http://localhost:3000/aws")
+	Expect(err).ToNot(HaveOccurred())
+
+	err = os.Setenv(sessionDurationKey, "1h")
 	Expect(err).ToNot(HaveOccurred())
 
 	// when setting aws endpoint region becomes mandatory

@@ -140,14 +140,35 @@ var _ = Describe("Samlet Controller", func() {
 		It("Expire time is properly calculated", func() {
 			deadline := &metav1.Time{Time: time.Now().Add(time.Duration(9) * time.Minute)}
 			By("Delete existing saml2aws")
-			Expect(k8sClient.Delete(context.Background(), obj)).Should(Succeed())
+			Eventually(func() error {
+				return k8sClient.Delete(context.Background(), obj)
+			}, timeout, interval).Should(Succeed())
 			By("Specifying session duration 30 minutes")
 			obj.Spec.SessionDuration = "30m"
 			obj.ObjectMeta.ResourceVersion = ""
 			By("Creating test saml object")
-			Expect(k8sClient.Create(context.Background(), obj)).Should(Succeed())
+			Eventually(func() error {
+				return k8sClient.Create(context.Background(), obj)
+			}, timeout, interval).Should(Succeed())
 			By("Checking expire time")
 			Expect(obj.Status.ExpirationTime.Before(deadline)).Should(BeTrue())
+
+		})
+		It("prefers sessionDuration from spec over global SESSION_DURATION option", func() {
+			defaultExpire := &metav1.Time{Time: time.Now().Add(time.Duration(50) * time.Minute)}
+			By("Delete existing saml2aws")
+			Eventually(func() error {
+				return k8sClient.Delete(context.Background(), obj)
+			}, timeout, interval).Should(Succeed())
+			By("Specifying session duration 20 minutes")
+			obj.Spec.SessionDuration = "20m"
+			obj.ObjectMeta.ResourceVersion = ""
+			By("Creating test saml object")
+			Eventually(func() error {
+				return k8sClient.Create(context.Background(), obj)
+			}, timeout, interval).Should(Succeed())
+			By("Checking expire time")
+			Expect(obj.Status.ExpirationTime.Before(defaultExpire)).Should(BeTrue())
 
 		})
 	})

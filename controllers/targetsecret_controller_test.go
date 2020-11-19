@@ -137,5 +137,18 @@ var _ = Describe("Samlet Controller", func() {
 			Expect(timeFromSecret.Before(time.Now().Add(timeDuration * time.Second))).
 				Should(BeTrue())
 		})
+		It("Expire time is properly calculated", func() {
+			deadline := &metav1.Time{Time: time.Now().Add(time.Duration(9) * time.Minute)}
+			By("Delete existing saml2aws")
+			Expect(k8sClient.Delete(context.Background(), obj)).Should(Succeed())
+			By("Specifying session duration 30 minutes")
+			obj.Spec.SessionDuration = "30m"
+			obj.ObjectMeta.ResourceVersion = ""
+			By("Creating test saml object")
+			Expect(k8sClient.Create(context.Background(), obj)).Should(Succeed())
+			By("Checking expire time")
+			Expect(obj.Status.ExpirationTime.Before(deadline)).Should(BeTrue())
+
+		})
 	})
 })

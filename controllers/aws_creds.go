@@ -24,8 +24,8 @@ const (
 	defaultProfile              = "saml"
 )
 
-func formatAccount(config *configreader.Config, login, role string) (*cfg.IDPAccount, error) {
-	timeDuration, err := time.ParseDuration(config.SessionDuration)
+func formatAccount(config *configreader.Config, duration, login, role string) (*cfg.IDPAccount, error) {
+	timeDuration, err := time.ParseDuration(duration)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +127,12 @@ func (r *Saml2AwsReconciler) createAWSCreds(saml *samletv1.Saml2Aws) (*awsconfig
 	}
 	user, password := getLoginData(loginSecret)
 
-	account, err := formatAccount(r.Config, user, saml.Spec.RoleARN)
+	duration := r.Config.SessionDuration
+	if saml.Spec.SessionDuration != "" {
+		duration = saml.Spec.SessionDuration
+	}
+
+	account, err := formatAccount(r.Config, duration, user, saml.Spec.RoleARN)
 	if err != nil {
 		return nil, "", err
 	}

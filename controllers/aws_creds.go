@@ -21,7 +21,7 @@ import (
 
 const (
 	defaultAmazonWebservicesURN = "urn:amazon:webservices"
-	defaultProfile              = "saml"
+	defaultProfile              = "default"
 )
 
 func formatAccount(config *configreader.Config, duration, login, role string) (*cfg.IDPAccount, error) {

@@ -47,6 +47,11 @@ run: generate fmt vet manifests
 install: manifests
 	kubectl apply -f chart/samlet/templates/samlet.absa.oss_saml2aws.yaml
 
+.PHONY: lincense
+# updates source code with license headers
+license: golic
+	$(GOLIC) inject -c "2021 ABSA Group Limited"
+
 # Uninstall CRDs from a cluster
 uninstall: manifests
 	kubectl delete -f chart/samlet/templates/samlet.absa.oss_saml2aws.yaml
@@ -95,6 +100,23 @@ ifeq (, $(shell which controller-gen))
 CONTROLLER_GEN=$(GOBIN)/controller-gen
 else
 CONTROLLER_GEN=$(shell which controller-gen)
+endif
+
+# find or download golic 
+# download golic if necessary
+golic:
+ifeq (, $(shell which golic))
+	@{ \
+	set -e ;\
+	GOLIC_TMP_DIR=$$(mktemp -d) ;\
+	cd $$GOLIC_TMP_DIR ;\
+	go mod init tmp ;\
+	go get github.com/AbsaOSS/golic@v0.1.2 ;\
+	rm -rf $$GOLIC_TMP_DIR ;\
+	}
+GOLIC=$(GOBIN)/golic
+else
+GOLIC=$(shell which golic)
 endif
 
 kustomize:

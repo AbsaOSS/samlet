@@ -132,7 +132,7 @@ var _ = BeforeSuite(func(done Done) {
 
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
-		CRDDirectoryPaths: []string{filepath.Join("..", "config", "crd", "bases")},
+		CRDDirectoryPaths: []string{filepath.Join("..", "chart", "samlet", "templates", "samlet.absa.oss_saml2aws.yaml")},
 	}
 
 	config, err = testEnv.Start()

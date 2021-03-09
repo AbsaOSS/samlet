@@ -1,0 +1,39 @@
+project_name: absaoss/samlet
+before:
+  hooks:
+    - go mod download
+builds:
+  - env:
+      - CGO_ENABLED=0
+    main: ./main.go
+    binary: bin/manager
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+dockers:
+- image_templates:
+  - "{{ .ProjectName }}:{{ .Tag }}-amd64"
+  use_buildx: false
+  dockerfile: Dockerfile-amd64
+  build_flag_templates:
+  - "--platform=linux/amd64"
+- image_templates:
+  - "{{ .ProjectName }}:{{ .Tag }}-arm64"
+  use_buildx: false
+  goarch: arm64
+  dockerfile: Dockerfile-arm64
+  build_flag_templates:
+  - "--platform=linux/arm64"
+docker_manifests:
+  - name_template: "{{ .ProjectName }}:{{ .Tag }}"
+    image_templates:
+    - "{{ .ProjectName }}:{{ .Tag }}-amd64"
+    - "{{ .ProjectName }}:{{ .Tag }}-arm64"
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ .Tag }}-next"
+release:
+  draft: true

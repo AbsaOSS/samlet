@@ -15,7 +15,7 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 REPO = absaoss/samlet
 IMG ?= $(REPO):v$(VERSION)
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
-CRD_OPTIONS ?= "crd:crdVersions=v1beta1"
+CRD_OPTIONS ?= "crd:crdVersions=v1"
 
 KUBEBUILDER_ASSETS = $(ENVTEST_ASSETS_DIR)/bin
 

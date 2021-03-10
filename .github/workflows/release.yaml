@@ -35,14 +35,14 @@ jobs:
       run: |
         echo ::set-output name=tag::${GITHUB_REF#refs/tags/}
         echo ::set-output name=semver::${GITHUB_REF#refs/tags/v}
-    - uses: absaoss/helm-gh-pages-microservices@master
+    - uses: stefanprodan/helm-gh-pages@v1.4.1
       with:
-        access-token: ${{ secrets.REPO_TOKEN }}
-        source-charts-folder: 'chart'
-        destination-repo: absaoss/samlet
-        destination-branch: gh-pages
-        helm-chart-version: ${{ steps.tag.outputs.semver }}
-        helm-app-version:  ${{ steps.tag.outputs.tag}}
+        token: ${{ secrets.REPO_TOKEN }}
+        charts_dir: chart
+        branch: gh-pages
+        linting: off
+        app_version: ${{ steps.tag.outputs.tag}}
+        chart_version: ${{ steps.tag.outputs.semver }}
     - name: Create single node k8s Kind Cluster
       uses: helm/kind-action@v1.0.0-rc.1
       with:

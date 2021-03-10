@@ -2,23 +2,33 @@ apiVersion: v1
 entries:
   samlet:
   - apiVersion: v2
+    appVersion: v0.1.3
+    created: "2021-03-10T11:16:07.578003741Z"
+    description: A Helm chart for Kubernetes
+    digest: f861a4bc110874b646cdddfaaa4fdd62213aea9e73a22b0fe9f8374598ab1a5c
+    name: samlet
+    type: application
+    urls:
+    - https://AbsaOSS.github.io/samlet/samlet-0.1.3.tgz
+    version: 0.1.3
+  - apiVersion: v2
     appVersion: v0.1.2
-    created: "2021-02-25T17:51:45.247196571Z"
+    created: "2021-03-10T11:16:07.577538646Z"
     description: A Helm chart for Kubernetes
     digest: 1defccd9408b5fc72cfa4d7867dbde82e2100e8543b207b152271a4bfb43a4e2
     name: samlet
     type: application
     urls:
-    - samlet-0.1.2.tgz
+    - https://AbsaOSS.github.io/samlet/samlet-0.1.2.tgz
     version: 0.1.2
   - apiVersion: v2
     appVersion: v0.1.0
-    created: "2021-02-25T17:51:45.246878769Z"
+    created: "2021-03-10T11:16:07.577014552Z"
     description: A Helm chart for Kubernetes
     digest: 1a59ca37d09e601c1bc5131f5be9a16bd76d3021a398d63b2f1d5f64fdeb3bc1
     name: samlet
     type: application
     urls:
-    - samlet-0.1.0.tgz
+    - https://AbsaOSS.github.io/samlet/samlet-0.1.0.tgz
     version: 0.1.0
-generated: "2021-02-25T17:51:45.246346065Z"
+generated: "2021-03-10T11:16:07.575909164Z"

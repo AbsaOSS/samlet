@@ -78,7 +78,7 @@ deploy: manifests kustomize
 
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen
-	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role paths="./..." output:crd:artifacts:config=chart/samlet/templates
+	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=samlet-role paths="./..." output:crd:artifacts:config=chart/samlet/templates
 
 # Run go fmt against code
 fmt:

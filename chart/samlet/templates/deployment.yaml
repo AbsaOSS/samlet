@@ -31,10 +31,5 @@ spec:
             value: {{ $v | quote }}
           {{- end }}
         resources:
-          limits:
-            cpu: 100m
-            memory: 30Mi
-          requests:
-            cpu: 100m
-            memory: 20Mi
+            {{- toYaml .Values.resources | nindent 12 }}
       terminationGracePeriodSeconds: 10

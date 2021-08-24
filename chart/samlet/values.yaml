@@ -17,3 +17,12 @@ samlet:
   idpEndpoint: ""
   # default validity time for issued secrets
   sessionDuration: "1h"
+
+# Default resources for samlet
+resources:
+  limits:
+    cpu: 100m
+    memory: 30Mi
+  requests:
+    cpu: 100m
+    memory: 20Mi

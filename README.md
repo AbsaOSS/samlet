@@ -18,6 +18,9 @@ helm upgrade -i samlet --namespace samlet samlet/samlet
 # Example
 ## Environment variables
 Following `Saml2Aws` Custom Resource, once created in k8s cluster, will case Samlet operator to request AWS credentials valid for 2 hours using `example-login` (credential keys are `username` and `password`) credentials and create new `target-secret` with AWS SDK environment variables.
+
+Setting sessionDuration will override global controller's SESSION_DURATION option.
+
 These environment variables can be then wired from the secret to an application pod using `envFrom` option in Pod manifest.
 ```yaml
 apiVersion: samlet.absa.oss/v1

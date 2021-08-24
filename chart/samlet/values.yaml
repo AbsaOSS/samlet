@@ -16,5 +16,4 @@ samlet:
   #idpEndpoint: "https://example.com"
   idpEndpoint: ""
   # default validity time for issued secrets
-  #sessionDurattion: 1h
-  sessionDuration: ""
+  sessionDuration: "1h"

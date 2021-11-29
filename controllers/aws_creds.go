@@ -28,7 +28,6 @@ import (
 	samletv1 "github.com/bison-cloud-platform/samlet/api/v1"
 	configreader "github.com/bison-cloud-platform/samlet/controllers/config"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/versent/saml2aws/v2"
 	"github.com/versent/saml2aws/v2/pkg/awsconfig"
 	"github.com/versent/saml2aws/v2/pkg/cfg"
@@ -85,7 +84,7 @@ func loginToStsUsingRole(account *cfg.IDPAccount, role *saml2aws.AWSRole, samlAs
 		DurationSeconds: aws.Int64(int64(account.SessionDuration)),
 	}
 
-	logrus.Infof("Requesting AWS credentials using SAML assertion")
+	log.Info("Requesting AWS credentials using SAML assertion")
 
 	resp, err := svc.AssumeRoleWithSAML(params)
 	if err != nil {

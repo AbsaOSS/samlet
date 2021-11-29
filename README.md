@@ -1,6 +1,7 @@
 # samlet
 Samlet is a Kubernetes operator based on [saml2aws](https://github.com/Versent/saml2aws)
 
+
 # Why
 Samlet provides Kubernetes applications tied to organization IdP with seamless access to AWS resources via [SAML 2.0 identity federation](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_saml.html).
 It stores generated AWS session credentials as k8s Secrets, so that they can be consumed by application container as mounted [AWS credentials file](https://docs.aws.amazon.com/credref/latest/refdocs/creds-config-files.html) or wired as [AWS SDK environment variables](https://docs.aws.amazon.com/credref/latest/refdocs/environment-variables.html).

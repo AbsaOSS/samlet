@@ -19,6 +19,7 @@ package controllers
 
 import (
 	b64 "encoding/base64"
+	"github.com/bison-cloud-platform/samlet/config/utils"
 	"os"
 	"time"
 
@@ -28,7 +29,6 @@ import (
 	samletv1 "github.com/bison-cloud-platform/samlet/api/v1"
 	configreader "github.com/bison-cloud-platform/samlet/controllers/config"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/versent/saml2aws/v2"
 	"github.com/versent/saml2aws/v2/pkg/awsconfig"
 	"github.com/versent/saml2aws/v2/pkg/cfg"
@@ -85,7 +85,7 @@ func loginToStsUsingRole(account *cfg.IDPAccount, role *saml2aws.AWSRole, samlAs
 		DurationSeconds: aws.Int64(int64(account.SessionDuration)),
 	}
 
-	logrus.Infof("Requesting AWS credentials using SAML assertion")
+	lg.Info().Msg("Requesting AWS credentials using SAML assertion")
 
 	resp, err := svc.AssumeRoleWithSAML(params)
 	if err != nil {
@@ -103,34 +103,36 @@ func loginToStsUsingRole(account *cfg.IDPAccount, role *saml2aws.AWSRole, samlAs
 	}, nil
 }
 
+var lg = utils.Logger()
+
 func getCredentials(assertion, role string, account *cfg.IDPAccount) (*awsconfig.AWSCredentials, error) {
 	data, err := b64.StdEncoding.DecodeString(assertion)
 	if err != nil {
-		log.Error(err, "error decoding saml assertion")
+		lg.Err(err).Msg("error decoding saml assertion")
 		return nil, err
 	}
 
 	roles, err := saml2aws.ExtractAwsRoles(data)
 	if err != nil {
-		log.Error(err, "error parsing aws roles")
+		lg.Err(err).Msg("error parsing aws roles")
 		return nil, err
 	}
 
 	awsRoles, err := saml2aws.ParseAWSRoles(roles)
 	if err != nil {
-		log.Error(err, "error parsing aws roles")
+		lg.Err(err).Msg( "error parsing aws roles")
 		return nil, err
 	}
 
 	awsRole, err := saml2aws.LocateRole(awsRoles, role)
 	if err != nil {
-		log.Error(err, "error locating role")
+		lg.Err(err).Msg( "error locating role")
 		return nil, err
 	}
 
 	awsCreds, err := loginToStsUsingRole(account, awsRole, assertion)
 	if err != nil {
-		log.Error(err, "error logging into aws role using saml assertion")
+		lg.Err(err).Msg( "error logging into aws role using saml assertion")
 		return nil, err
 	}
 	return awsCreds, nil
@@ -165,13 +167,13 @@ func (r *Saml2AwsReconciler) createAWSCreds(saml *samletv1.Saml2Aws) (*awsconfig
 	}
 	samlAssertion, err := provider.Authenticate(loginDetails)
 	if err != nil {
-		log.Error(err, "error authenticating to IdP")
+		lg.Err(err).Msg("error authenticating to IdP")
 		return nil, "", err
 
 	}
 	awsCreds, err := getCredentials(samlAssertion, account.RoleARN, account)
 	if err != nil {
-		log.Error(err, "error logging into aws role using saml assertion")
+		lg.Err(err).Msg( "error logging into aws role using saml assertion")
 		return nil, "", err
 	}
 	return awsCreds, account.Profile, nil

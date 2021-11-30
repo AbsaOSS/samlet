@@ -148,6 +148,10 @@ func (r *Saml2AwsReconciler) createAWSCreds(saml *samletv1.Saml2Aws) (*awsconfig
 		duration = saml.Spec.SessionDuration
 	}
 
+	if saml.Spec.IDPEndpoint != "" {
+		r.Config.IDPEndpoint = saml.Spec.IDPEndpoint
+	}
+
 	account, err := formatAccount(r.Config, duration, user, saml.Spec.RoleARN)
 	if err != nil {
 		return nil, "", err

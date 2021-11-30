@@ -186,7 +186,22 @@ var _ = Describe("Samlet Controller", func() {
 			}, timeout, interval).Should(Succeed())
 			By("Checking expire time")
 			Expect(obj.Status.ExpirationTime.Before(defaultExpire)).Should(BeTrue())
-
+		})
+		It("prefers idpEndpoint from spec over global IDP_ENDPOINT option", func() {
+			newEndpoint := "http://new-endpoint"
+			By("Delete existing saml2aws")
+			Eventually(func() error {
+				return k8sClient.Delete(context.Background(), obj)
+			}, timeout, interval).Should(Succeed())
+			By("Override endpoint")
+			obj.Spec.IDPEndpoint = newEndpoint
+			obj.ObjectMeta.ResourceVersion = ""
+			By("Creating test saml object")
+			Eventually(func() error {
+				return k8sClient.Create(context.Background(), obj)
+			}, timeout, interval).Should(Succeed())
+			By("Checking expire time, should not be updated")
+			Expect(obj.Status.ExpirationTime).To(Equal(metav1.Time{}))
 		})
 	})
 })

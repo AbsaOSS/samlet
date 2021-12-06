@@ -57,6 +57,7 @@ type Saml2AwsSpec struct {
 type Saml2AwsStatus struct {
 	RoleARN        string      `json:"roleARN,omitempty"`
 	ExpirationTime metav1.Time `json:"expirationTime,omitempty"`
+	State          string      `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
